@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Relatórios e indicadores | {{ newsletter.titulo }}</title>
+    <link rel="stylesheet" href="../static/css/newsletter_web.css">
+</head>
+<body>
+    <header class="hero hero--compact">
+        <div class="hero__inner">
+            <div class="hero__copy">
+                <p class="hero__eyebrow">Kauê Felinto</p>
+                <h1>Relatórios e indicadores</h1>
+                <p class="hero__subtitle">{{ newsletter.titulo }} | Edição {{ newsletter.numero_edicao }}</p>
+            </div>
+
+            <a class="back-button" href="newsletter_preview.html">Voltar para a newsletter</a>
+        </div>
+    </header>
+
+    <main class="page-shell archive-page">
+        <div class="section-heading">
+            <p>Biblioteca da edição</p>
+            <h2>Arquivos PDF</h2>
+        </div>
+
+        <section class="report-grid" aria-label="Relatórios em PDF">
+            {% for relatorio in newsletter.relatorios %}
+            <article class="report-card">
+                <div class="report-card__icon" aria-hidden="true">PDF</div>
+                <div class="report-card__body">
+                    <p class="report-card__date">
+                        {{ relatorio.data }} · {{ relatorio.categoria }}{% if relatorio.fonte and relatorio.fonte != relatorio.categoria %} · {{ relatorio.fonte }}{% endif %}
+                    </p>
+                    <h2>{{ relatorio.titulo }}</h2>
+                    <p>{{ relatorio.descricao }}</p>
+                    {% if relatorio.arquivo and relatorio.arquivo != "#" %}
+                    <a class="text-link" href="{{ relatorio.arquivo }}" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
+                    {% else %}
+                    <span class="report-card__pending">PDF será inserido automaticamente</span>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="page-shell footer__inner">
+            <p>Newsletter institucional preparada por Kauê Felinto.</p>
+            <nav aria-label="Links do rodapé">
+                <a href="newsletter_preview.html">Voltar para a edição</a>
+                <a href="https://portalibre.fgv.br/" target="_blank" rel="noopener noreferrer">Portal FGV IBRE</a>
+            </nav>
+            <p>&copy; {{ newsletter.ano }} Kauê Felinto. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

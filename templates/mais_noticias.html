@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mais notícias | {{ newsletter.titulo }}</title>
+    <link rel="stylesheet" href="../static/css/newsletter_web.css">
+</head>
+<body>
+    <header class="hero hero--compact">
+        <div class="hero__inner">
+            <div class="hero__copy">
+                <p class="hero__eyebrow">Kauê Felinto</p>
+                <h1>Mais notícias</h1>
+                <p class="hero__subtitle">{{ newsletter.titulo }} | Edição {{ newsletter.numero_edicao }}</p>
+            </div>
+
+            <a class="back-button" href="newsletter_preview.html">Voltar para a newsletter</a>
+        </div>
+    </header>
+
+    <main class="page-shell archive-page">
+        <div class="section-heading">
+            <p>Arquivo da edição</p>
+            <h2>Notícias complementares</h2>
+        </div>
+
+        <section class="archive-grid" aria-label="Mais notícias">
+            {% for noticia in newsletter.mais_noticias %}
+            <article class="archive-card">
+                <a href="{{ noticia.url }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ noticia.imagem }}" alt="{{ noticia.alt }}">
+                </a>
+                <div class="archive-card__body">
+                    <div class="news-item__meta">
+                        <span class="topic-badge">{{ noticia.topico }}</span>
+                        <time datetime="{{ noticia.data_iso|default(noticia.data) }}T{{ noticia.hora }}">{{ noticia.data }} às {{ noticia.hora }}</time>
+                    </div>
+                    <h2>
+                        <a href="{{ noticia.url }}" target="_blank" rel="noopener noreferrer">{{ noticia.titulo }}</a>
+                    </h2>
+                    <p>{{ noticia.resumo }}</p>
+                    <a class="text-link" href="{{ noticia.url }}" target="_blank" rel="noopener noreferrer">Ler notícia</a>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="page-shell footer__inner">
+            <p>Newsletter institucional preparada por Kauê Felinto.</p>
+            <nav aria-label="Links do rodapé">
+                <a href="newsletter_preview.html">Voltar para a edição</a>
+                <a href="https://portalibre.fgv.br/" target="_blank" rel="noopener noreferrer">Portal FGV IBRE</a>
+            </nav>
+            <p>&copy; {{ newsletter.ano }} Kauê Felinto. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

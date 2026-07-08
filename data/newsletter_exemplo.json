@@ -1,0 +1,235 @@
+{
+  "titulo": "Newsletter Econômica",
+  "subtitulo": "Inteligência Econômica",
+  "data_edicao": "17 de junho de 2026",
+  "hora_atualizacao": "08:15",
+  "numero_edicao": 124,
+  "ano": 2026,
+  "url_navegador": "https://exemplo.com/newsletter/edicao-124",
+  "indicadores": [
+    {
+      "nome": "Dólar",
+      "valor": "R$ 5,42",
+      "variacao": "+0,18%",
+      "direcao": "alta",
+      "classe": "indicator--alta",
+      "data": "Atualizado às 11:11"
+    },
+    {
+      "nome": "Ibovespa",
+      "valor": "126.894 pts",
+      "variacao": "-0,72%",
+      "direcao": "queda",
+      "classe": "indicator--queda",
+      "data": "Fechamento: 06/07"
+    },
+    {
+      "nome": "Bitcoin",
+      "valor": "R$ 348.120",
+      "variacao": "+2,04%",
+      "direcao": "alta",
+      "classe": "indicator--alta",
+      "data": "Atualizado às 11:09"
+    },
+    {
+      "nome": "Selic",
+      "valor": "10,50% a.a.",
+      "variacao": "Atual",
+      "direcao": "neutra",
+      "classe": "indicator--neutra",
+      "data": "Meta Copom"
+    },
+    {
+      "nome": "IPCA",
+      "valor": "4,72%",
+      "variacao": "Mensal: +0,58%",
+      "direcao": "alta",
+      "classe": "indicator--alta",
+      "data": "Ref.: maio/2026"
+    },
+    {
+      "nome": "INCC",
+      "valor": "6,70%",
+      "variacao": "Mensal: +0,85%",
+      "direcao": "alta",
+      "classe": "indicator--alta",
+      "data": "Ref.: junho/2026"
+    },
+    {
+      "nome": "IGP-M",
+      "valor": "3,18%",
+      "variacao": "Mensal: -0,50%",
+      "direcao": "queda",
+      "classe": "indicator--queda",
+      "data": "Ref.: junho/2026"
+    }
+  ],
+  "destaques": [
+    {
+      "topico": "Moeda e Crédito",
+      "texto": "Copom mantém Selic e sinaliza cautela para os próximos passos."
+    },
+    {
+      "topico": "Construção Civil",
+      "texto": "Custos setoriais seguem pressionados por materiais e mão de obra especializada."
+    },
+    {
+      "topico": "Atividade Econômica",
+      "texto": "Indicadores antecedentes sugerem moderação no ritmo de crescimento."
+    }
+  ],
+  "noticias": [
+    {
+      "titulo": "Copom mantém Selic em 10,50% ao ano e sinaliza cautela",
+      "resumo": "Comitê reforça preocupação com inflação de serviços e incertezas fiscais antes dos próximos passos da política monetária.",
+      "topico": "Moeda e Crédito",
+      "data": "17/06/2026",
+      "data_iso": "2026-06-17",
+      "hora": "08:05",
+      "url": "https://exemplo.com/noticia/copom-selic-cautela",
+      "imagem": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=720&q=80",
+      "alt": "Fachada de edifício institucional representando política monetária"
+    },
+    {
+      "titulo": "Confiança da construção avança com melhora gradual das expectativas",
+      "resumo": "Empresários relatam carteira de projetos mais robusta, apesar de custos ainda elevados e juros restritivos.",
+      "topico": "Construção Civil",
+      "data": "17/06/2026",
+      "data_iso": "2026-06-17",
+      "hora": "07:45",
+      "url": "https://exemplo.com/noticia/confianca-construcao-expectativas",
+      "imagem": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=720&q=80",
+      "alt": "Canteiro de obras com estrutura de concreto e guindastes"
+    },
+    {
+      "titulo": "Mercado de trabalho sustenta renda, mas criação de vagas desacelera",
+      "resumo": "Rendimento real segue em patamar favorável, enquanto admissões formais perdem força no início do trimestre.",
+      "topico": "Emprego",
+      "data": "16/06/2026",
+      "data_iso": "2026-06-16",
+      "hora": "18:20",
+      "url": "https://exemplo.com/noticia/mercado-trabalho-renda-vagas",
+      "imagem": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=720&q=80",
+      "alt": "Carteira de trabalho sobre mesa com documentos econômicos"
+    },
+    {
+      "titulo": "IPCA mostra alívio em alimentos, enquanto serviços seguem resilientes",
+      "resumo": "Leitura mensal melhora a composição do índice, mas núcleos de inflação ainda exigem atenção.",
+      "topico": "Inflação",
+      "data": "16/06/2026",
+      "data_iso": "2026-06-16",
+      "hora": "15:10",
+      "url": "https://exemplo.com/noticia/ipca-alimentos-servicos",
+      "imagem": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=720&q=80",
+      "alt": "Calculadora e gráficos financeiros usados para análise de inflação"
+    },
+    {
+      "titulo": "Setor externo registra superávit, com commodities sustentando exportações",
+      "resumo": "Balança comercial continua positiva, mas importações de bens intermediários indicam atividade mais seletiva.",
+      "topico": "Setor Externo",
+      "data": "15/06/2026",
+      "data_iso": "2026-06-15",
+      "hora": "12:30",
+      "url": "https://exemplo.com/noticia/setor-externo-superavit-commodities",
+      "imagem": "https://images.unsplash.com/photo-1494412685616-a5d310fbb07d?auto=format&fit=crop&w=720&q=80",
+      "alt": "Contêineres em porto representando comércio exterior"
+    }
+  ],
+  "mais_noticias": [
+    {
+      "titulo": "Crédito imobiliário mantém crescimento, mas bancos elevam seletividade",
+      "resumo": "Instituições financeiras relatam demanda firme por financiamento, com análise de risco mais criteriosa diante do cenário de juros.",
+      "topico": "Crédito Imobiliário",
+      "data": "15/06/2026",
+      "data_iso": "2026-06-15",
+      "hora": "10:15",
+      "url": "https://exemplo.com/noticia/credito-imobiliario-seletividade",
+      "imagem": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=720&q=80",
+      "alt": "Prédios residenciais vistos de baixo para cima"
+    },
+    {
+      "titulo": "Custos de materiais desaceleram, mas mão de obra segue pressionada",
+      "resumo": "Levantamento setorial indica alívio pontual nos insumos, enquanto serviços especializados continuam com oferta restrita.",
+      "topico": "Custos da Construção",
+      "data": "14/06/2026",
+      "data_iso": "2026-06-14",
+      "hora": "17:40",
+      "url": "https://exemplo.com/noticia/custos-materiais-mao-de-obra",
+      "imagem": "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=720&q=80",
+      "alt": "Profissionais analisando planta em ambiente de construção"
+    },
+    {
+      "titulo": "Confiança do consumidor reage com melhora gradual da renda",
+      "resumo": "Indicador avança pelo segundo mês consecutivo, apoiado por mercado de trabalho resiliente e inflação menos disseminada.",
+      "topico": "Consumo",
+      "data": "14/06/2026",
+      "data_iso": "2026-06-14",
+      "hora": "13:05",
+      "url": "https://exemplo.com/noticia/confianca-consumidor-renda",
+      "imagem": "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=720&q=80",
+      "alt": "Pessoa usando cartão em terminal de pagamento"
+    },
+    {
+      "titulo": "Investimentos em infraestrutura ganham tração com novas concessões",
+      "resumo": "Projetos de transporte e saneamento ampliam carteira prevista para os próximos trimestres, com impacto sobre demanda por construção pesada.",
+      "topico": "Infraestrutura",
+      "data": "13/06/2026",
+      "data_iso": "2026-06-13",
+      "hora": "09:50",
+      "url": "https://exemplo.com/noticia/infraestrutura-concessoes-investimentos",
+      "imagem": "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=720&q=80",
+      "alt": "Obra de infraestrutura com máquinas e trabalhadores"
+    }
+  ],
+  "relatorios": [
+    {
+      "titulo": "Visão Geral",
+      "categoria": "Visão Geral",
+      "descricao": "Relatório mais recente da Carta de Conjuntura do Ipea em Visão Geral.",
+      "data": "Atualização automática",
+      "arquivo": "#"
+    },
+    {
+      "titulo": "Atividade Econômica",
+      "categoria": "Atividade Econômica",
+      "descricao": "Relatório mais recente da Carta de Conjuntura do Ipea em Atividade Econômica.",
+      "data": "Atualização automática",
+      "arquivo": "#"
+    },
+    {
+      "titulo": "Inflação",
+      "categoria": "Inflação",
+      "descricao": "Relatório mais recente da Carta de Conjuntura do Ipea em Inflação.",
+      "data": "Atualização automática",
+      "arquivo": "#"
+    },
+    {
+      "titulo": "Moeda e Crédito",
+      "categoria": "Moeda e Crédito",
+      "descricao": "Relatório mais recente da Carta de Conjuntura do Ipea em Moeda e Crédito.",
+      "data": "Atualização automática",
+      "arquivo": "#"
+    },
+    {
+      "titulo": "Finanças Públicas",
+      "categoria": "Finanças Públicas",
+      "descricao": "Relatório mais recente da Carta de Conjuntura do Ipea em Finanças Públicas.",
+      "data": "Atualização automática",
+      "arquivo": "#"
+    }
+  ],
+  "materias_fgv": [
+    {
+      "titulo": "Impacto da defasagem da gasolina da no IPCA e reflexos de sua subvenção nos resultados da Petrobras",
+      "url": "https://blogdoibre.fgv.br/posts/impacto-da-defasagem-da-gasolina-da-no-ipca-e-reflexos-de-sua-subvencao-nos-resultados-da"
+    },
+    {
+      "titulo": "Novo Fundeb e a contratação de professores temporários",
+      "url": "https://blogdoibre.fgv.br/posts/novo-fundeb-e-contratacao-de-professores-temporarios"
+    },
+    {
+      "titulo": "O celular e o superendividamento das famílias brasileiras",
+      "url": "https://blogdoibre.fgv.br/posts/o-celular-e-o-superendividamento-das-familias-brasileiras"
+    }
+  ]
+}
