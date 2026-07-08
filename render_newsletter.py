@@ -84,6 +84,8 @@ MARKET_TIMEOUT_SECONDS = 8
 NETWORK_RETRY_DELAY_SECONDS = 3
 DEFAULT_NETWORK_ATTEMPTS = 2
 SGS_NETWORK_ATTEMPTS = 3
+RELEASE_CALENDAR_YEAR = 2026
+RELEASE_CALENDAR_DEFAULT_START_MONTH = 6
 CALENDAR_WEEKDAYS = ("S", "T", "Q", "Q", "S", "S", "D")
 MONTHS_PT_BR = (
     "janeiro",
@@ -239,7 +241,7 @@ def group_release_events_by_date() -> dict[str, list[str]]:
     return grouped_events
 
 
-def build_release_calendar(year: int = 2026, start_month: int = 1) -> dict[str, Any]:
+def build_release_calendar(year: int = RELEASE_CALENDAR_YEAR, start_month: int = 1) -> dict[str, Any]:
     events_by_date = group_release_events_by_date()
     months: list[dict[str, Any]] = []
     start_month = max(1, min(start_month, 12))
@@ -293,8 +295,12 @@ def add_current_display_dates(data: dict[str, Any]) -> dict[str, Any]:
     display_data["data_exibicao"] = format_date_pt_br(now)
     display_data["hora_atualizacao"] = now.strftime("%H:%M")
     display_data["ano"] = now.year
-    calendar_start_month = now.month - 1 if now.year == 2026 else 1
-    display_data["release_calendar"] = build_release_calendar(2026, calendar_start_month)
+    calendar_start_month = (
+        max(1, now.month - 1)
+        if now.year == RELEASE_CALENDAR_YEAR
+        else RELEASE_CALENDAR_DEFAULT_START_MONTH
+    )
+    display_data["release_calendar"] = build_release_calendar(RELEASE_CALENDAR_YEAR, calendar_start_month)
     return display_data
 
 
