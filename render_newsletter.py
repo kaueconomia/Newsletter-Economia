@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import html as html_lib
 import urllib.parse
 import urllib.request
@@ -37,6 +38,7 @@ REPORTS_TEMPLATE_NAME = "relatorios.html"
 REPORTS_OUTPUT_FILE = BASE_DIR / "output" / "relatorios.html"
 DATABASE_TEMPLATE_NAME = "banco_de_dados.html"
 DATABASE_OUTPUT_FILE = BASE_DIR / "output" / "banco_de_dados.html"
+INDICATOR_CACHE_FILE = BASE_DIR / "data" / "cache" / "market_indicators.json"
 DOCS_DIR = BASE_DIR / "docs"
 DOCS_STATIC_DIR = DOCS_DIR / "static"
 DOCS_INDEX_FILE = DOCS_DIR / "index.html"
@@ -78,6 +80,9 @@ IBGE_CATALOG_REPORTS = (
     },
 )
 MARKET_TIMEOUT_SECONDS = 8
+NETWORK_RETRY_DELAY_SECONDS = 3
+DEFAULT_NETWORK_ATTEMPTS = 2
+SGS_NETWORK_ATTEMPTS = 3
 MONTHS_PT_BR = (
     "janeiro",
     "fevereiro",
@@ -363,7 +368,88 @@ def fallback_selic_indicator() -> dict[str, str]:
     }
 
 
-def request_json(url: str, query: dict[str, str] | None = None, use_brapi_token: bool = False) -> dict[str, Any]:
+def sleep_before_retry(attempt: int, attempts: int, retry_delay: float) -> None:
+    if attempt < attempts:
+        time.sleep(retry_delay)
+
+
+def request_urlopen_with_retries(
+    request: urllib.request.Request,
+    attempts: int = DEFAULT_NETWORK_ATTEMPTS,
+    retry_delay: float = NETWORK_RETRY_DELAY_SECONDS,
+) -> bytes:
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=MARKET_TIMEOUT_SECONDS) as response:
+                return response.read()
+        except Exception as error:
+            last_error = error
+            sleep_before_retry(attempt, attempts, retry_delay)
+
+    assert last_error is not None
+    raise last_error
+
+
+def load_indicator_cache() -> dict[str, Any]:
+    if not INDICATOR_CACHE_FILE.exists():
+        return {}
+
+    try:
+        payload = json.loads(INDICATOR_CACHE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    return payload if isinstance(payload, dict) else {}
+
+
+def save_indicator_cache(cache: dict[str, Any]) -> None:
+    INDICATOR_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    INDICATOR_CACHE_FILE.write_text(
+        json.dumps(cache, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def cache_indicator(indicator: dict[str, str]) -> dict[str, str]:
+    name = str(indicator.get("nome", "")).strip()
+    value = str(indicator.get("valor", "")).strip()
+    if not name or value in {"", "N/D"}:
+        return indicator
+
+    cache = load_indicator_cache()
+    cache[name] = {
+        "indicator": indicator,
+        "saved_at": get_current_datetime().isoformat(),
+    }
+    save_indicator_cache(cache)
+    return indicator
+
+
+def cached_indicator(name: str) -> dict[str, str] | None:
+    item = load_indicator_cache().get(name)
+    if not isinstance(item, dict):
+        return None
+
+    indicator = item.get("indicator")
+    if not isinstance(indicator, dict):
+        return None
+
+    cached = {str(key): str(value) for key, value in indicator.items()}
+    cached["data"] = f"{cached.get('data', '').strip()} · Último valor salvo".strip(" ·")
+    return cached
+
+
+def log_cached_indicator(indicator_name: str) -> None:
+    print(f"Aviso: usando último valor salvo para {indicator_name}.")
+
+
+def request_json(
+    url: str,
+    query: dict[str, str] | None = None,
+    use_brapi_token: bool = False,
+    attempts: int = DEFAULT_NETWORK_ATTEMPTS,
+) -> dict[str, Any]:
     query = query or {}
     headers = {"User-Agent": "newsletter-economica/1.0"}
 
@@ -378,19 +464,23 @@ def request_json(url: str, query: dict[str, str] | None = None, use_brapi_token:
         url = f"{url}?{query_string}"
 
     request = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(request, timeout=MARKET_TIMEOUT_SECONDS) as response:
-        return json.loads(response.read().decode("utf-8"))
+    raw_data = request_urlopen_with_retries(request, attempts=attempts)
+    return json.loads(raw_data.decode("utf-8"))
 
 
-def request_text(url: str, query: dict[str, str] | None = None) -> str:
+def request_text(
+    url: str,
+    query: dict[str, str] | None = None,
+    attempts: int = DEFAULT_NETWORK_ATTEMPTS,
+) -> str:
     query = query or {}
     query_string = urllib.parse.urlencode(query)
     if query_string:
         url = f"{url}?{query_string}"
 
     request = urllib.request.Request(url, headers={"User-Agent": "newsletter-economica/1.0"})
-    with urllib.request.urlopen(request, timeout=MARKET_TIMEOUT_SECONDS) as response:
-        return response.read().decode("utf-8", errors="replace")
+    raw_data = request_urlopen_with_retries(request, attempts=attempts)
+    return raw_data.decode("utf-8", errors="replace")
 
 
 def get_brapi_token() -> str:
@@ -460,7 +550,7 @@ def request_awesomeapi_quote(pair: str) -> dict[str, Any]:
 
 
 def request_bcb_selic() -> dict[str, Any]:
-    payload = request_json(BCB_SELIC_URL, {"formato": "json"})
+    payload = request_json(BCB_SELIC_URL, {"formato": "json"}, attempts=SGS_NETWORK_ATTEMPTS)
 
     if not isinstance(payload, list) or not payload:
         raise ValueError("Resposta sem resultados para Selic SGS 432.")
@@ -534,35 +624,47 @@ def build_awesomeapi_indicator(
 def buscar_cotacao_dolar() -> dict[str, str]:
     try:
         quote = request_brapi_currency("USD-BRL")
-        return build_currency_indicator("Dólar", quote)
+        return cache_indicator(build_currency_indicator("Dólar", quote))
     except Exception as brapi_error:
         try:
             quote = request_awesomeapi_quote("USD-BRL")
-            return build_awesomeapi_indicator("Dólar", quote, lambda value: format_brl(value, 2))
+            return cache_indicator(build_awesomeapi_indicator("Dólar", quote, lambda value: format_brl(value, 2)))
         except Exception as fallback_error:
             log_fetch_error("Dólar", Exception(f"brapi: {brapi_error}; awesomeapi: {fallback_error}"))
+            cached = cached_indicator("Dólar")
+            if cached:
+                log_cached_indicator("Dólar")
+                return cached
         return fallback_market_indicator("Dólar")
 
 
 def buscar_cotacao_ibovespa() -> dict[str, str]:
     try:
         quote = request_brapi_stock_quote("^BVSP")
-        return build_market_indicator("Ibovespa", quote, format_points)
+        return cache_indicator(build_market_indicator("Ibovespa", quote, format_points))
     except Exception as error:
         log_fetch_error("Ibovespa", error)
+        cached = cached_indicator("Ibovespa")
+        if cached:
+            log_cached_indicator("Ibovespa")
+            return cached
         return fallback_market_indicator("Ibovespa")
 
 
 def buscar_cotacao_bitcoin() -> dict[str, str]:
     try:
         quote = request_brapi_crypto("BTC", "BRL")
-        return build_market_indicator("Bitcoin", quote, lambda value: format_brl(value, 0))
+        return cache_indicator(build_market_indicator("Bitcoin", quote, lambda value: format_brl(value, 0)))
     except Exception as brapi_error:
         try:
             quote = request_awesomeapi_quote("BTC-BRL")
-            return build_awesomeapi_indicator("Bitcoin", quote, lambda value: format_brl(value, 0))
+            return cache_indicator(build_awesomeapi_indicator("Bitcoin", quote, lambda value: format_brl(value, 0)))
         except Exception as fallback_error:
             log_fetch_error("Bitcoin", Exception(f"brapi: {brapi_error}; awesomeapi: {fallback_error}"))
+            cached = cached_indicator("Bitcoin")
+            if cached:
+                log_cached_indicator("Bitcoin")
+                return cached
         return fallback_market_indicator("Bitcoin")
 
 
@@ -570,16 +672,20 @@ def buscar_selic() -> dict[str, str]:
     try:
         result = request_bcb_selic()
         value = float(str(result.get("valor", "")).replace(",", "."))
-        return {
+        return cache_indicator({
             "nome": "Selic",
             "valor": f"{format_brazilian_number(value, 2)}% a.a.",
             "variacao": "Atual",
             "direcao": "neutra",
             "classe": "indicator--neutra",
             "data": "Meta Copom",
-        }
+        })
     except Exception as error:
         log_fetch_error("Selic", error)
+        cached = cached_indicator("Selic")
+        if cached:
+            log_cached_indicator("Selic")
+            return cached
         return fallback_selic_indicator()
 
 

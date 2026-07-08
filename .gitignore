@@ -2,5 +2,6 @@ env
 token.json
 credentials.json
 output/
+data/cache/
 __pycache__/
 *.pyc
