@@ -27,6 +27,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "newsletter_exemplo.json"
 ENV_FILE = BASE_DIR / "env"
+SUEP_RELEASE_CALENDAR_FILE = BASE_DIR / "data" / "release_calendar_suep.json"
 PRICE_INDEX_WORKBOOK = Path(
     r"C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\BI\Índices de Preços\INDICES_COMPLETO.xlsx"
 )
@@ -232,21 +233,67 @@ def format_date_pt_br(date: datetime) -> str:
     return f"{date.day} de {month} de {date.year}"
 
 
-def group_release_events_by_date() -> dict[str, list[str]]:
+def load_suep_release_events(path: Path = SUEP_RELEASE_CALENDAR_FILE) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        print(f"Aviso: não foi possível carregar calendário SUEP. Motivo: {error}")
+        return []
+
+    events: list[dict[str, str]] = []
+    if not isinstance(payload, list):
+        return events
+
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        event_date = str(item.get("date", "")).strip()
+        label = str(item.get("label", "")).strip()
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", event_date) and label:
+            events.append({"date": event_date, "label": label})
+    return events
+
+
+def release_calendar_events() -> list[dict[str, str]]:
+    return [*RELEASE_CALENDAR_EVENTS, *load_suep_release_events()]
+
+
+def group_release_events_by_date(events: list[dict[str, str]] | None = None) -> dict[str, list[str]]:
     grouped_events: dict[str, list[str]] = {}
-    for event in RELEASE_CALENDAR_EVENTS:
+    for event in events or release_calendar_events():
         date = event["date"]
         label = event["label"]
         grouped_events.setdefault(date, []).append(label)
     return grouped_events
 
 
-def build_release_calendar(year: int = RELEASE_CALENDAR_YEAR, start_month: int = 1) -> dict[str, Any]:
-    events_by_date = group_release_events_by_date()
+def iter_calendar_months(start_year: int, start_month: int, end_year: int, end_month: int) -> list[tuple[int, int]]:
+    months: list[tuple[int, int]] = []
+    year, month = start_year, start_month
+    while (year, month) <= (end_year, end_month):
+        months.append((year, month))
+        month += 1
+        if month > 12:
+            month = 1
+            year += 1
+    return months
+
+
+def build_release_calendar(start_year: int = RELEASE_CALENDAR_YEAR, start_month: int = 1) -> dict[str, Any]:
+    events = release_calendar_events()
+    events_by_date = group_release_events_by_date(events)
     months: list[dict[str, Any]] = []
     start_month = max(1, min(start_month, 12))
+    end_year, end_month = RELEASE_CALENDAR_YEAR, 12
+    event_dates = [datetime.strptime(event["date"], "%Y-%m-%d") for event in events]
+    if event_dates:
+        latest_event = max(event_dates)
+        end_year, end_month = latest_event.year, latest_event.month
 
-    for month in range(start_month, 13):
+    for year, month in iter_calendar_months(start_year, start_month, end_year, end_month):
         first_weekday, days_in_month = monthrange(year, month)
         weeks: list[list[dict[str, Any]]] = []
         week: list[dict[str, Any]] = [{"empty": True} for _ in range(first_weekday)]
