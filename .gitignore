@@ -1,9 +1,6 @@
 env
 token.json
 credentials.json
-output/*
-!output/newsletter_preview.html
-!output/mais_noticias.html
-!output/relatorios.html
+output/
 __pycache__/
 *.pyc
