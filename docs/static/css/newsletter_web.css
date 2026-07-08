@@ -762,6 +762,119 @@ a:hover {
     stroke-linejoin: round;
 }
 
+.release-calendar {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: var(--shadow-soft);
+}
+
+.release-calendar__header p {
+    margin: 0 0 4px;
+    color: var(--blue-700);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.release-calendar__header h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 19px;
+    line-height: 1.2;
+}
+
+.release-calendar__months {
+    display: grid;
+    max-height: 620px;
+    gap: 14px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.release-month {
+    display: grid;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(97, 112, 138, 0.16);
+}
+
+.release-month:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.release-month h3 {
+    margin: 0;
+    color: var(--blue-900);
+    font-size: 15px;
+    line-height: 1.2;
+}
+
+.release-month__weekdays,
+.release-month__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.release-month__weekdays span {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.release-day {
+    position: relative;
+    display: grid;
+    min-height: 30px;
+    place-items: center;
+    border-radius: 6px;
+    color: #26364f;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.release-day--empty {
+    min-height: 30px;
+}
+
+.release-day--event {
+    cursor: help;
+    background: #edf5ff;
+    color: var(--blue-900);
+    outline: 0;
+}
+
+.release-day--event:hover,
+.release-day--event:focus-visible {
+    background: #dceeff;
+    box-shadow: inset 0 0 0 1px var(--blue-700);
+}
+
+.release-day--event i {
+    position: absolute;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--blue-700);
+}
+
+.release-day--event em {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    color: var(--blue-700);
+    font-size: 10px;
+    font-style: normal;
+    line-height: 1;
+}
+
 .database-page {
     padding: 42px 0 54px;
 }
