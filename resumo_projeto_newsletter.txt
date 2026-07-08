@@ -1,0 +1,528 @@
+RESUMO DO PROJETO NEWSLETTER ECONÔMICA
+======================================
+
+Este documento resume o que foi feito até agora no projeto da Newsletter Econômica, como o site foi publicado e quais são os próximos passos planejados.
+
+
+1. Objetivo inicial
+-------------------
+
+O objetivo foi criar uma newsletter econômica em formato web, com visual institucional, páginas auxiliares e atualização automatizada por meio de um programa em Python.
+
+A newsletter passou a ter:
+
+- página principal;
+- página de mais notícias;
+- página de relatórios e indicadores;
+- página de banco de dados com Power BI embutido;
+- publicação online gratuita via GitHub Pages;
+- rotina para gerar e publicar automaticamente os arquivos do site.
+
+
+2. Estrutura do projeto
+-----------------------
+
+O projeto foi organizado com separação entre dados, templates, arquivos estáticos e arquivos publicados:
+
+- data/
+  Guarda os dados da newsletter, como notícias, destaques, relatórios e indicadores.
+
+- templates/
+  Guarda os modelos HTML em Jinja2 usados pelo Python para gerar as páginas.
+
+- static/
+  Guarda os arquivos visuais do site, como CSS e imagem de topo.
+
+- output/
+  Guarda os HTMLs gerados localmente para visualização.
+
+- docs/
+  Guarda a versão pronta para publicação no GitHub Pages.
+
+- render_newsletter.py
+  Script principal que gera a newsletter.
+
+
+3. Páginas criadas
+------------------
+
+Foram criadas/ajustadas as seguintes páginas:
+
+- index.html
+  Página principal da newsletter no GitHub Pages.
+
+- mais_noticias.html
+  Página complementar com mais notícias.
+
+- relatorios.html
+  Página com relatórios e indicadores em PDF.
+
+- banco_de_dados.html
+  Página com o Power BI embutido.
+
+A página do Banco de Dados recebeu o iframe do Power BI:
+
+https://app.powerbi.com/view?r=eyJrIjoiYjk3YWI2YmItZDgwZS00OGJjLWIzNWMtZWQxOWM0YzhiMTRjIiwidCI6IjJjYWJjZGJmLWFmNzAtNGI2NS1iZTE3LTAwMzMzNTQwYmJjOSJ9
+
+
+4. Card Banco de Dados
+----------------------
+
+Foi adicionado um card chamado "Banco de Dados" abaixo das notícias da FGV IBRE.
+
+Ao clicar nesse card, o usuário é levado para a página:
+
+banco_de_dados.html
+
+Dentro dela, o Power BI é carregado diretamente por iframe.
+
+
+5. Ajustes de texto e identidade
+--------------------------------
+
+Foram substituídas referências a SindusCon-SP por Kauê Felinto onde fazia sentido na identidade da newsletter.
+
+Também foram corrigidos problemas de codificação em alguns textos, como:
+
+- Kauê Felinto;
+- Edição;
+- rodapé;
+- Indicadores econômicos.
+
+
+6. Publicação gratuita online
+-----------------------------
+
+Foi escolhida a publicação via GitHub Pages, por ser gratuita e adequada para sites estáticos.
+
+O repositório usado foi:
+
+https://github.com/kaueconomia/Newsletter-Economia
+
+O site publicado ficou em:
+
+https://kaueconomia.github.io/Newsletter-Economia/
+
+No GitHub Pages, a configuração correta é:
+
+- Branch: main
+- Folder: /docs
+
+
+7. Estrutura correta no GitHub Pages
+------------------------------------
+
+Para o GitHub Pages funcionar corretamente, a pasta docs precisa ficar assim:
+
+docs/
+  index.html
+  banco_de_dados.html
+  mais_noticias.html
+  relatorios.html
+  static/
+    css/
+      newsletter_web.css
+    img/
+      topo-newsletter-economica.png
+
+Um problema resolvido foi o caminho do CSS.
+
+Dentro dos HTMLs publicados em docs/, o caminho correto é:
+
+<link rel="stylesheet" href="static/css/newsletter_web.css">
+
+Antes, alguns arquivos estavam apontando para:
+
+<link rel="stylesheet" href="../static/css/newsletter_web.css">
+
+Esse caminho funcionava localmente dentro de output/, mas quebrava no GitHub Pages.
+
+
+8. Correção do botão de voltar
+------------------------------
+
+Outro problema resolvido foi o botão "Voltar para a newsletter".
+
+Nas páginas auxiliares ele apontava para:
+
+newsletter_preview.html
+
+Mas no GitHub Pages a página principal se chama:
+
+index.html
+
+O script foi ajustado para, ao montar a pasta docs/, trocar automaticamente:
+
+newsletter_preview.html
+
+por:
+
+index.html
+
+Assim, o botão de voltar funciona corretamente no site publicado.
+
+
+9. Automatização da geração
+---------------------------
+
+O script render_newsletter.py foi ajustado para gerar não só a pasta output/, mas também a pasta docs/.
+
+Agora, ao rodar:
+
+py render_newsletter.py
+
+o programa gera:
+
+- output/newsletter_preview.html;
+- output/mais_noticias.html;
+- output/relatorios.html;
+- output/banco_de_dados.html;
+- docs/index.html;
+- docs/mais_noticias.html;
+- docs/relatorios.html;
+- docs/banco_de_dados.html;
+- docs/static/.
+
+A pasta docs/ já fica pronta para o GitHub Pages.
+
+
+10. Automatização da publicação
+-------------------------------
+
+Também foi adicionada uma opção para publicar automaticamente:
+
+py render_newsletter.py --publish
+
+Esse comando faz:
+
+1. gera a newsletter;
+2. atualiza a pasta docs/;
+3. roda git add docs;
+4. cria um commit;
+5. executa git push;
+6. atualiza o GitHub Pages.
+
+Na prática, esse comando virou o principal fluxo de atualização do site.
+
+
+11. Criação do repositório local
+--------------------------------
+
+Foi feito o clone do repositório do GitHub para a pasta:
+
+C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\PROGRAMAS\Newsletter-GitHub
+
+Essa passou a ser a pasta correta para trabalhar daqui para frente.
+
+O projeto antigo estava em:
+
+C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\PROGRAMAS\Newsletter
+
+Mas a pasta conectada ao GitHub é:
+
+C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\PROGRAMAS\Newsletter-GitHub
+
+
+12. Fluxo atual de trabalho
+---------------------------
+
+O fluxo atual é:
+
+1. Entrar na pasta do projeto conectado ao GitHub:
+
+cd "C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\PROGRAMAS\Newsletter-GitHub"
+
+2. Rodar:
+
+py render_newsletter.py --publish
+
+3. Esperar o GitHub Pages atualizar.
+
+4. Abrir:
+
+https://kaueconomia.github.io/Newsletter-Economia/
+
+
+13. Indicadores econômicos
+--------------------------
+
+O projeto busca ou tenta buscar alguns indicadores automaticamente:
+
+- Dólar;
+- Ibovespa;
+- Bitcoin;
+- Selic;
+- IPCA;
+- INCC-M;
+- IGP-M.
+
+As fontes usadas incluem:
+
+- brapi;
+- AwesomeAPI;
+- Banco Central/SGS;
+- planilha local de índices de preços.
+
+
+14. Tratamento de erro dos indicadores
+--------------------------------------
+
+Foi identificado um problema de certificado SSL no Python da máquina.
+
+Por causa disso, algumas chamadas de API falham com erro de certificado.
+
+Para deixar o sistema mais robusto, foram feitos dois ajustes:
+
+1. Retentativas automáticas.
+
+O SGS/Selic agora tenta 3 vezes no total:
+
+- tentativa inicial;
+- mais 2 tentativas;
+- intervalo de 3 segundos entre tentativas.
+
+As demais APIs fazem 2 tentativas por padrão.
+
+2. Cache local do último valor válido.
+
+Quando Dólar, Ibovespa, Bitcoin ou Selic forem obtidos com sucesso, o valor é salvo localmente em:
+
+data/cache/market_indicators.json
+
+Se a API falhar no futuro, o programa tenta usar o último valor salvo antes de cair em N/D.
+
+Esse arquivo de cache foi colocado no .gitignore, ou seja, não é enviado ao GitHub.
+
+
+15. Relatórios e fontes externas
+--------------------------------
+
+O projeto também tenta buscar relatórios automaticamente de fontes como:
+
+- Ipea;
+- Banco Central;
+- IBGE;
+- Ministério da Fazenda;
+- Blog do IBRE/FGV.
+
+Quando essas fontes falham, o script usa fallbacks já definidos nos dados da newsletter.
+
+
+16. Principais problemas resolvidos
+-----------------------------------
+
+Durante o processo, foram resolvidos estes problemas:
+
+- publicação inicial dando 404;
+- estrutura incorreta da pasta docs/;
+- arquivos HTML dentro da pasta static por engano;
+- arquivo mais_noticias sem extensão .html;
+- CSS quebrado no GitHub Pages;
+- links apontando para newsletter_preview.html em vez de index.html;
+- textos com acentuação quebrada;
+- referências antigas a SindusCon-SP;
+- publicação manual substituída por fluxo automatizado;
+- falta de configuração de identidade do Git;
+- proteção contra falhas temporárias de API.
+
+
+17. Próximos passos planejados
+------------------------------
+
+O próximo grande passo é transformar o sistema em uma newsletter mais inteligente, baseada em coleta e curadoria automática de notícias.
+
+A ideia é criar uma esteira com as seguintes etapas:
+
+1. Definir fontes de notícias.
+
+Selecionar sites e portais relevantes para economia, construção civil, crédito, inflação, juros, mercado imobiliário, indústria, infraestrutura e conjuntura.
+
+Possíveis fontes:
+
+- Banco Central;
+- IBGE;
+- Ipea;
+- FGV IBRE;
+- Ministério da Fazenda;
+- Agência Brasil;
+- Valor Econômico;
+- Estadão Economia;
+- CNN Brasil Economia;
+- InfoMoney;
+- Exame;
+- Poder360;
+- portais setoriais da construção civil.
+
+2. Criar um coletor de notícias.
+
+O programa deverá acessar essas fontes, capturar títulos, links, datas, resumos e categorias.
+
+Inicialmente, isso pode ser feito por:
+
+- RSS, quando o site oferecer;
+- APIs públicas, quando existirem;
+- scraping simples de páginas públicas;
+- busca automatizada por palavras-chave.
+
+3. Definir palavras-chave.
+
+Criar uma lista de termos importantes para filtrar notícias.
+
+Exemplos:
+
+- construção civil;
+- mercado imobiliário;
+- crédito imobiliário;
+- financiamento;
+- habitação;
+- Minha Casa Minha Vida;
+- juros;
+- Selic;
+- inflação;
+- IPCA;
+- INCC;
+- IGP-M;
+- PIB;
+- emprego;
+- indústria;
+- infraestrutura;
+- concessões;
+- investimento;
+- Banco Central;
+- Copom;
+- déficit;
+- arrecadação;
+- reforma tributária.
+
+4. Atribuir pesos às fontes.
+
+Nem toda fonte tem o mesmo peso.
+
+Fontes oficiais podem ter maior peso para dados e indicadores.
+
+Exemplo de lógica:
+
+- Banco Central, IBGE, Ipea, FGV: peso alto;
+- veículos econômicos reconhecidos: peso médio/alto;
+- portais gerais: peso médio;
+- blogs e opiniões: peso menor, dependendo do caso.
+
+5. Atribuir pesos às notícias.
+
+Cada notícia pode receber uma pontuação com base em critérios como:
+
+- fonte;
+- data de publicação;
+- presença de palavras-chave;
+- relevância para construção civil;
+- impacto econômico;
+- relação com indicadores;
+- potencial interesse para o público da newsletter;
+- repetição do mesmo assunto em várias fontes.
+
+6. Classificar notícias por temas.
+
+As notícias podem ser agrupadas em categorias:
+
+- Macroeconomia;
+- Inflação;
+- Juros e crédito;
+- Construção civil;
+- Mercado imobiliário;
+- Indústria;
+- Emprego e renda;
+- Governo e política econômica;
+- Relatórios e indicadores;
+- Internacional.
+
+7. Evitar duplicidade.
+
+O sistema precisará identificar notícias muito parecidas sobre o mesmo tema.
+
+Exemplo:
+
+Se três sites publicarem sobre a mesma decisão do Copom, o programa deve perceber que é o mesmo assunto e escolher a melhor fonte ou consolidar o tema.
+
+8. Gerar uma seleção automática.
+
+Depois de pontuar e classificar, o programa poderá selecionar:
+
+- principais notícias da página inicial;
+- notícias complementares;
+- destaques da edição;
+- relatórios relevantes;
+- possíveis chamadas para o Banco de Dados.
+
+9. Criar resumos com IA.
+
+Depois de escolher as notícias, uma etapa de IA pode transformar o conteúdo em textos curtos, claros e padronizados para a newsletter.
+
+Esses resumos devem manter:
+
+- objetividade;
+- linguagem institucional;
+- foco em economia;
+- relevância para construção civil;
+- cuidado para não copiar textos longos das fontes.
+
+10. Derivar a newsletter a partir do site.
+
+A ideia final é que o site funcione como base principal.
+
+O programa gera o site completo e, a partir dele, pode derivar:
+
+- newsletter web;
+- versão de e-mail;
+- resumo executivo;
+- cards para WhatsApp;
+- arquivo PDF;
+- base histórica de edições.
+
+
+18. Visão final do projeto
+--------------------------
+
+A visão final é ter um sistema em que o usuário rode um comando e o processo inteiro aconteça:
+
+1. coleta dados econômicos;
+2. coleta notícias;
+3. pontua relevância;
+4. classifica por tema;
+5. escolhe os melhores conteúdos;
+6. gera textos com apoio de IA;
+7. renderiza o site;
+8. atualiza o GitHub Pages;
+9. disponibiliza a newsletter online.
+
+O comando final desejado é:
+
+py render_newsletter.py --publish
+
+Com isso, a newsletter fica atualizada online sem precisar mexer manualmente nos arquivos HTML.
+
+
+19. Estado atual
+----------------
+
+Atualmente, o projeto já tem:
+
+- site publicado;
+- página principal;
+- página de mais notícias;
+- página de relatórios;
+- página de banco de dados com Power BI;
+- geração automática de docs/;
+- publicação automática via Git;
+- tratamento inicial de falhas de API;
+- cache local de indicadores;
+- estrutura pronta para evoluir para coleta automática de notícias.
+
+O próximo ciclo de desenvolvimento será focado na inteligência editorial:
+
+- escolher fontes;
+- coletar notícias;
+- criar pesos;
+- criar palavras-chave;
+- ranquear conteúdos;
+- gerar uma newsletter mais automática e mais curada.
+
