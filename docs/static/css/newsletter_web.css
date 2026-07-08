@@ -772,6 +772,13 @@ a:hover {
     box-shadow: var(--shadow-soft);
 }
 
+.release-calendar__header {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
 .release-calendar__header p {
     margin: 0 0 4px;
     color: var(--blue-700);
@@ -787,24 +794,67 @@ a:hover {
     line-height: 1.2;
 }
 
+.release-calendar__controls {
+    display: flex;
+    gap: 6px;
+}
+
+.release-calendar__button {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--blue-900);
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.release-calendar__button:hover:not(:disabled) {
+    border-color: var(--blue-700);
+    background: #edf5ff;
+    color: var(--blue-700);
+}
+
+.release-calendar__button:disabled {
+    cursor: default;
+    opacity: 0.38;
+}
+
+.release-calendar__status {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    color: var(--blue-900);
+    font-size: 14px;
+    font-weight: 900;
+}
+
 .release-calendar__months {
     display: grid;
-    max-height: 620px;
-    gap: 14px;
-    overflow: auto;
-    padding-right: 4px;
+    overflow: hidden;
 }
 
 .release-month {
     display: grid;
     gap: 8px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(97, 112, 138, 0.16);
+    padding: 12px;
+    border: 1px solid rgba(22, 87, 163, 0.22);
+    border-radius: 8px;
+    background: #f8fbff;
 }
 
-.release-month:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
+.release-month[hidden] {
+    display: none;
+}
+
+.release-month--current {
+    border-color: var(--blue-700);
+    box-shadow: inset 0 0 0 1px rgba(22, 87, 163, 0.18);
 }
 
 .release-month h3 {

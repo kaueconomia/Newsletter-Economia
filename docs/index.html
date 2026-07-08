@@ -28,7 +28,7 @@
                         <svg viewBox="0 0 24 24" focusable="false"><path d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                     </span>
                     <dt>Atualização</dt>
-                    <dd>14:43</dd>
+                    <dd>14:49</dd>
                 </div>
                 <div class="edition-card__item">
                     <span class="edition-card__icon" aria-hidden="true">
@@ -372,13 +372,23 @@
 
                 <section class="release-calendar" aria-labelledby="release-calendar-title">
                     <div class="release-calendar__header">
-                        <p>Indicadores e pesquisas</p>
-                        <h2 id="release-calendar-title">Calendário de divulgações</h2>
+                        <div>
+                            <p>Indicadores e pesquisas</p>
+                            <h2 id="release-calendar-title">Calendário de divulgações</h2>
+                        </div>
+                        <div class="release-calendar__controls" aria-label="Navegação do calendário">
+                            <button class="release-calendar__button" type="button" data-calendar-prev aria-label="Mês anterior">‹</button>
+                            <button class="release-calendar__button" type="button" data-calendar-next aria-label="Próximo mês">›</button>
+                        </div>
                     </div>
 
-                    <div class="release-calendar__months">
+                    <div class="release-calendar__status" aria-live="polite">
+                        <span data-calendar-status></span>
+                    </div>
+
+                    <div class="release-calendar__months" data-calendar data-active-month="1">
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="0" data-month-name="Junho 2026" hidden>
                             <h3>Junho 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -670,7 +680,7 @@ FGV SUEP: Sondagem de Serviços - referência jun/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month release-month--current" data-calendar-month data-month-index="1" data-month-name="Julho 2026">
                             <h3>Julho 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -983,7 +993,7 @@ FGV SUEP: Sondagem de Serviços - referência jul/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="2" data-month-name="Agosto 2026" hidden>
                             <h3>Agosto 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -1335,7 +1345,7 @@ FGV SUEP: Índice de Confiança Empresarial (ICE) - referência ago/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="3" data-month-name="Setembro 2026" hidden>
                             <h3>Setembro 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -1659,7 +1669,7 @@ FGV SUEP: Sondagem do Comércio - referência set/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="4" data-month-name="Outubro 2026" hidden>
                             <h3>Outubro 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -1978,7 +1988,7 @@ FGV SUEP: Sondagem de Serviços - referência out/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="5" data-month-name="Novembro 2026" hidden>
                             <h3>Novembro 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -2329,7 +2339,7 @@ FGV SUEP: Índice de Confiança Empresarial (ICE) - referência nov/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="6" data-month-name="Dezembro 2026" hidden>
                             <h3>Dezembro 2026</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -2648,7 +2658,7 @@ FGV SUEP: Sondagem de Serviços - referência dez/26">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="7" data-month-name="Janeiro 2027" hidden>
                             <h3>Janeiro 2027</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -2938,7 +2948,7 @@ FGV SUEP: Indicador de Incerteza da Economia Brasil (IIE-Br) - referência jan/2
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="8" data-month-name="Fevereiro 2027" hidden>
                             <h3>Fevereiro 2027</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -3186,7 +3196,7 @@ FGV SUEP: Sondagem do Comércio - referência fev/27">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="9" data-month-name="Março 2027" hidden>
                             <h3>Março 2027</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -3422,7 +3432,7 @@ FGV SUEP: Sondagem do Comércio - referência fev/27">
                             </div>
                         </article>
                         
-                        <article class="release-month">
+                        <article class="release-month" data-calendar-month data-month-index="10" data-month-name="Abril 2027" hidden>
                             <h3>Abril 2027</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 
@@ -3722,5 +3732,33 @@ FGV SUEP: Indicador de Incerteza da Economia Brasil (IIE-Br) - referência abr/2
             <p>&copy; 2026 Kauê Felinto. Todos os direitos reservados.</p>
         </div>
     </footer>
+    <script>
+        (() => {
+            const calendar = document.querySelector("[data-calendar]");
+            if (!calendar) return;
+
+            const months = Array.from(calendar.querySelectorAll("[data-calendar-month]"));
+            const prevButton = document.querySelector("[data-calendar-prev]");
+            const nextButton = document.querySelector("[data-calendar-next]");
+            const status = document.querySelector("[data-calendar-status]");
+            let activeIndex = Number(calendar.dataset.activeMonth || 0);
+
+            const showMonth = (index) => {
+                activeIndex = Math.max(0, Math.min(index, months.length - 1));
+                months.forEach((month, monthIndex) => {
+                    month.hidden = monthIndex !== activeIndex;
+                });
+                if (status) {
+                    status.textContent = months[activeIndex]?.dataset.monthName || "";
+                }
+                if (prevButton) prevButton.disabled = activeIndex === 0;
+                if (nextButton) nextButton.disabled = activeIndex === months.length - 1;
+            };
+
+            prevButton?.addEventListener("click", () => showMonth(activeIndex - 1));
+            nextButton?.addEventListener("click", () => showMonth(activeIndex + 1));
+            showMonth(activeIndex);
+        })();
+    </script>
 </body>
 </html>
