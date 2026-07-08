@@ -195,7 +195,7 @@
                                     {% if day.empty %}
                                     <span class="release-day release-day--empty" aria-hidden="true"></span>
                                     {% elif day.events %}
-                                    <span class="release-day release-day--event" aria-label="{{ day.date }}: {{ day.event_count }} divulgação{% if day.event_count > 1 %}ões{% endif %}">
+                                    <span class="release-day release-day--event" title="{{ day.tooltip }}" aria-label="{{ day.date }}: {{ day.tooltip }}">
                                         <span>{{ day.day }}</span>
                                         <i aria-hidden="true"></i>
                                         {% if day.event_count > 1 %}
