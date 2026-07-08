@@ -197,7 +197,7 @@
                                     {% elif day.events %}
                                     <span class="release-day release-day--event" title="{{ day.tooltip }}" aria-label="{{ day.date }}: {{ day.tooltip }}">
                                         <span>{{ day.day }}</span>
-                                        <i aria-hidden="true"></i>
+                                        <i aria-hidden="true">?</i>
                                         {% if day.event_count > 1 %}
                                         <em aria-hidden="true">{{ day.event_count }}</em>
                                         {% endif %}
