@@ -239,11 +239,12 @@ def group_release_events_by_date() -> dict[str, list[str]]:
     return grouped_events
 
 
-def build_release_calendar(year: int = 2026) -> dict[str, Any]:
+def build_release_calendar(year: int = 2026, start_month: int = 1) -> dict[str, Any]:
     events_by_date = group_release_events_by_date()
     months: list[dict[str, Any]] = []
+    start_month = max(1, min(start_month, 12))
 
-    for month in range(1, 13):
+    for month in range(start_month, 13):
         first_weekday, days_in_month = monthrange(year, month)
         weeks: list[list[dict[str, Any]]] = []
         week: list[dict[str, Any]] = [{"empty": True} for _ in range(first_weekday)]
@@ -292,7 +293,8 @@ def add_current_display_dates(data: dict[str, Any]) -> dict[str, Any]:
     display_data["data_exibicao"] = format_date_pt_br(now)
     display_data["hora_atualizacao"] = now.strftime("%H:%M")
     display_data["ano"] = now.year
-    display_data["release_calendar"] = build_release_calendar(2026)
+    calendar_start_month = now.month - 1 if now.year == 2026 else 1
+    display_data["release_calendar"] = build_release_calendar(2026, calendar_start_month)
     return display_data
 
 
