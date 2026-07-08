@@ -238,7 +238,7 @@ def load_suep_release_events(path: Path = SUEP_RELEASE_CALENDAR_FILE) -> list[di
         return []
 
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as error:
         print(f"Aviso: não foi possível carregar calendário SUEP. Motivo: {error}")
         return []
