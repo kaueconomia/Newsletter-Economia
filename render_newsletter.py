@@ -1291,6 +1291,7 @@ def render_template(data: dict[str, Any], template_name: str) -> str:
 def write_docs_page(source: Path, destination: Path) -> None:
     html = source.read_text(encoding="utf-8")
     html = html.replace("../static/", "static/")
+    html = html.replace("newsletter_preview.html", "index.html")
     destination.write_text(html, encoding="utf-8")
 
 
