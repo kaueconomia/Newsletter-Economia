@@ -15,6 +15,7 @@ import zipfile
 from copy import deepcopy
 from datetime import datetime
 from html.parser import HTMLParser
+from calendar import monthrange
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
@@ -83,6 +84,7 @@ MARKET_TIMEOUT_SECONDS = 8
 NETWORK_RETRY_DELAY_SECONDS = 3
 DEFAULT_NETWORK_ATTEMPTS = 2
 SGS_NETWORK_ATTEMPTS = 3
+CALENDAR_WEEKDAYS = ("S", "T", "Q", "Q", "S", "S", "D")
 MONTHS_PT_BR = (
     "janeiro",
     "fevereiro",
@@ -96,6 +98,98 @@ MONTHS_PT_BR = (
     "outubro",
     "novembro",
     "dezembro",
+)
+RELEASE_CALENDAR_EVENTS = (
+    {"date": "2026-01-29", "label": "Novo Caged - competência dezembro de 2025"},
+    {"date": "2026-03-03", "label": "Novo Caged - competência janeiro de 2026"},
+    {"date": "2026-03-31", "label": "Novo Caged - competência fevereiro de 2026"},
+    {"date": "2026-04-30", "label": "Novo Caged - competência março de 2026"},
+    {"date": "2026-05-28", "label": "Novo Caged - competência abril de 2026"},
+    {"date": "2026-06-30", "label": "Novo Caged - competência maio de 2026"},
+    {"date": "2026-07-10", "label": "INPC - referência 06/2026"},
+    {"date": "2026-07-10", "label": "IPCA - referência 06/2026"},
+    {"date": "2026-07-10", "label": "PIM Regional - referência 05/2026"},
+    {"date": "2026-07-10", "label": "SINAPI - referência 06/2026"},
+    {"date": "2026-07-13", "label": "Logística dos Transportes - referência 2024"},
+    {"date": "2026-07-14", "label": "LSPA - referência 06/2026"},
+    {"date": "2026-07-15", "label": "Pesquisa Mensal de Serviços - referência 05/2026"},
+    {"date": "2026-07-16", "label": "Pesquisa Mensal de Comércio - referência 05/2026"},
+    {"date": "2026-07-28", "label": "IPCA-15 - referência 07/2026"},
+    {"date": "2026-07-30", "label": "Novo Caged - competência junho de 2026"},
+    {"date": "2026-07-30", "label": "PNAD Contínua Mensal - referência 06/2026"},
+    {"date": "2026-07-31", "label": "IPP - referência 06/2026"},
+    {"date": "2026-08-04", "label": "PIM Brasil - referência 06/2026"},
+    {"date": "2026-08-11", "label": "INPC - referência 07/2026"},
+    {"date": "2026-08-11", "label": "IPCA - referência 07/2026"},
+    {"date": "2026-08-11", "label": "PIM Regional - referência 06/2026"},
+    {"date": "2026-08-11", "label": "SINAPI - referência 07/2026"},
+    {"date": "2026-08-12", "label": "Pesquisa Mensal de Serviços - referência 06/2026"},
+    {"date": "2026-08-13", "label": "LSPA - referência 07/2026"},
+    {"date": "2026-08-13", "label": "Pesquisa Mensal de Comércio - referência 06/2026"},
+    {"date": "2026-08-14", "label": "PNAD Contínua Trimestral - referência 04/2026 a 06/2026"},
+    {"date": "2026-08-19", "label": "Pesquisas Trimestrais Agropecuárias - primeiros resultados"},
+    {"date": "2026-08-26", "label": "IPCA-15 - referência 08/2026"},
+    {"date": "2026-08-27", "label": "PNAD Contínua Mensal - referência 07/2026"},
+    {"date": "2026-08-28", "label": "Novo Caged - competência julho de 2026"},
+    {"date": "2026-08-28", "label": "IPP - referência 07/2026"},
+    {"date": "2026-09-01", "label": "Contas Nacionais Trimestrais - referência 04/2026 a 06/2026"},
+    {"date": "2026-09-02", "label": "PIM Brasil - referência 07/2026"},
+    {"date": "2026-09-10", "label": "PIM Regional - referência 07/2026"},
+    {"date": "2026-09-10", "label": "Pesquisa Mensal de Serviços - referência 07/2026"},
+    {"date": "2026-09-11", "label": "INPC - referência 08/2026"},
+    {"date": "2026-09-11", "label": "IPCA - referência 08/2026"},
+    {"date": "2026-09-11", "label": "SINAPI - referência 08/2026"},
+    {"date": "2026-09-15", "label": "LSPA - referência 08/2026"},
+    {"date": "2026-09-15", "label": "Pesquisa Mensal de Comércio - referência 07/2026"},
+    {"date": "2026-09-15", "label": "Pesquisas Trimestrais Agropecuárias - referência 04/2026 a 06/2026"},
+    {"date": "2026-09-25", "label": "IPCA-15 - referência 09/2026"},
+    {"date": "2026-09-25", "label": "IPCA-E - referência 07/2026 a 09/2026"},
+    {"date": "2026-09-29", "label": "Novo Caged - competência agosto de 2026"},
+    {"date": "2026-09-29", "label": "PNAD Contínua Mensal - referência 08/2026"},
+    {"date": "2026-09-30", "label": "IPP - referência 08/2026"},
+    {"date": "2026-10-02", "label": "PIM Brasil - referência 08/2026"},
+    {"date": "2026-10-08", "label": "PIM Regional - referência 08/2026"},
+    {"date": "2026-10-09", "label": "INPC - referência 09/2026"},
+    {"date": "2026-10-09", "label": "IPCA - referência 09/2026"},
+    {"date": "2026-10-09", "label": "SINAPI - referência 09/2026"},
+    {"date": "2026-10-14", "label": "Pesquisa Mensal de Serviços - referência 08/2026"},
+    {"date": "2026-10-15", "label": "LSPA - referência 09/2026"},
+    {"date": "2026-10-15", "label": "Pesquisa Mensal de Comércio - referência 08/2026"},
+    {"date": "2026-10-23", "label": "IPCA-15 - referência 10/2026"},
+    {"date": "2026-10-27", "label": "IPP - referência 09/2026"},
+    {"date": "2026-10-29", "label": "Novo Caged - competência setembro de 2026"},
+    {"date": "2026-10-30", "label": "PNAD Contínua Mensal - referência 09/2026"},
+    {"date": "2026-11-05", "label": "PIM Brasil - referência 09/2026"},
+    {"date": "2026-11-11", "label": "PIM Regional - referência 09/2026"},
+    {"date": "2026-11-11", "label": "Pesquisa Mensal de Serviços - referência 09/2026"},
+    {"date": "2026-11-12", "label": "INPC - referência 10/2026"},
+    {"date": "2026-11-12", "label": "IPCA - referência 10/2026"},
+    {"date": "2026-11-12", "label": "SINAPI - referência 10/2026"},
+    {"date": "2026-11-13", "label": "LSPA - referência 10/2026"},
+    {"date": "2026-11-13", "label": "Pesquisa de Estoques - referência 01/2026 a 06/2026"},
+    {"date": "2026-11-13", "label": "Pesquisa Mensal de Comércio - referência 09/2026"},
+    {"date": "2026-11-13", "label": "Prognóstico da Safra - 1º prognóstico 2027"},
+    {"date": "2026-11-18", "label": "PNAD Contínua Trimestral - referência 07/2026 a 09/2026"},
+    {"date": "2026-11-19", "label": "Pesquisas Trimestrais Agropecuárias - primeiros resultados"},
+    {"date": "2026-11-26", "label": "IPP - referência 10/2026"},
+    {"date": "2026-11-26", "label": "IPCA-15 - referência 11/2026"},
+    {"date": "2026-11-27", "label": "PNAD Contínua Mensal - referência 10/2026"},
+    {"date": "2026-11-30", "label": "Novo Caged - competência outubro de 2026"},
+    {"date": "2026-12-02", "label": "Contas Nacionais Trimestrais - referência 07/2026 a 09/2026"},
+    {"date": "2026-12-03", "label": "PIM Brasil - referência 10/2026"},
+    {"date": "2026-12-08", "label": "Pesquisa Mensal de Comércio - referência 10/2026"},
+    {"date": "2026-12-09", "label": "PIM Regional - referência 10/2026"},
+    {"date": "2026-12-10", "label": "Pesquisa Mensal de Serviços - referência 10/2026"},
+    {"date": "2026-12-11", "label": "INPC - referência 11/2026"},
+    {"date": "2026-12-11", "label": "IPCA - referência 11/2026"},
+    {"date": "2026-12-11", "label": "SINAPI - referência 11/2026"},
+    {"date": "2026-12-15", "label": "LSPA - referência 11/2026"},
+    {"date": "2026-12-15", "label": "Pesquisas Trimestrais Agropecuárias - referência 07/2026 a 09/2026"},
+    {"date": "2026-12-15", "label": "Prognóstico da Safra - 2º prognóstico 2027"},
+    {"date": "2026-12-23", "label": "IPCA-15 - referência 12/2026"},
+    {"date": "2026-12-23", "label": "IPCA-E - referência 10/2026 a 12/2026"},
+    {"date": "2026-12-29", "label": "PNAD Contínua Mensal - referência 11/2026"},
+    {"date": "2026-12-30", "label": "Novo Caged - competência novembro de 2026"},
 )
 STATIC_INDICATOR_ORDER = (
     "ipca 12m",
@@ -136,6 +230,61 @@ def format_date_pt_br(date: datetime) -> str:
     return f"{date.day} de {month} de {date.year}"
 
 
+def group_release_events_by_date() -> dict[str, list[str]]:
+    grouped_events: dict[str, list[str]] = {}
+    for event in RELEASE_CALENDAR_EVENTS:
+        date = event["date"]
+        label = event["label"]
+        grouped_events.setdefault(date, []).append(label)
+    return grouped_events
+
+
+def build_release_calendar(year: int = 2026) -> dict[str, Any]:
+    events_by_date = group_release_events_by_date()
+    months: list[dict[str, Any]] = []
+
+    for month in range(1, 13):
+        first_weekday, days_in_month = monthrange(year, month)
+        weeks: list[list[dict[str, Any]]] = []
+        week: list[dict[str, Any]] = [{"empty": True} for _ in range(first_weekday)]
+
+        for day in range(1, days_in_month + 1):
+            iso_date = f"{year}-{month:02d}-{day:02d}"
+            events = events_by_date.get(iso_date, [])
+            week.append(
+                {
+                    "empty": False,
+                    "day": day,
+                    "date": iso_date,
+                    "events": events,
+                    "event_count": len(events),
+                    "tooltip": "\n".join(events),
+                }
+            )
+
+            if len(week) == 7:
+                weeks.append(week)
+                week = []
+
+        if week:
+            week.extend({"empty": True} for _ in range(7 - len(week)))
+            weeks.append(week)
+
+        months.append(
+            {
+                "name": f"{MONTHS_PT_BR[month - 1].capitalize()} {year}",
+                "weeks": weeks,
+            }
+        )
+
+    return {
+        "title": "Calendário de divulgações",
+        "subtitle": "Indicadores e pesquisas",
+        "weekdays": CALENDAR_WEEKDAYS,
+        "months": months,
+    }
+
+
 def add_current_display_dates(data: dict[str, Any]) -> dict[str, Any]:
     display_data = deepcopy(data)
     now = get_current_datetime()
@@ -143,6 +292,7 @@ def add_current_display_dates(data: dict[str, Any]) -> dict[str, Any]:
     display_data["data_exibicao"] = format_date_pt_br(now)
     display_data["hora_atualizacao"] = now.strftime("%H:%M")
     display_data["ano"] = now.year
+    display_data["release_calendar"] = build_release_calendar(2026)
     return display_data
 
 

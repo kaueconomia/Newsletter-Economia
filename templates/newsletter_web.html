@@ -173,6 +173,47 @@
                     </span>
                     <span>Banco de Dados</span>
                 </a>
+
+                <section class="release-calendar" aria-labelledby="release-calendar-title">
+                    <div class="release-calendar__header">
+                        <p>{{ newsletter.release_calendar.subtitle }}</p>
+                        <h2 id="release-calendar-title">{{ newsletter.release_calendar.title }}</h2>
+                    </div>
+
+                    <div class="release-calendar__months">
+                        {% for month in newsletter.release_calendar.months %}
+                        <article class="release-month">
+                            <h3>{{ month.name }}</h3>
+                            <div class="release-month__weekdays" aria-hidden="true">
+                                {% for weekday in newsletter.release_calendar.weekdays %}
+                                <span>{{ weekday }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="release-month__grid">
+                                {% for week in month.weeks %}
+                                    {% for day in week %}
+                                    {% if day.empty %}
+                                    <span class="release-day release-day--empty" aria-hidden="true"></span>
+                                    {% elif day.events %}
+                                    <span class="release-day release-day--event" tabindex="0" title="{{ day.tooltip }}" aria-label="{{ day.date }}: {{ day.tooltip }}">
+                                        <span>{{ day.day }}</span>
+                                        <i aria-hidden="true"></i>
+                                        {% if day.event_count > 1 %}
+                                        <em aria-hidden="true">{{ day.event_count }}</em>
+                                        {% endif %}
+                                    </span>
+                                    {% else %}
+                                    <span class="release-day">
+                                        <span>{{ day.day }}</span>
+                                    </span>
+                                    {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
             </aside>
         </div>
     </main>
