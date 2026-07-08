@@ -282,7 +282,11 @@ def iter_calendar_months(start_year: int, start_month: int, end_year: int, end_m
     return months
 
 
-def build_release_calendar(start_year: int = RELEASE_CALENDAR_YEAR, start_month: int = 1) -> dict[str, Any]:
+def build_release_calendar(
+    start_year: int = RELEASE_CALENDAR_YEAR,
+    start_month: int = 1,
+    current_date: datetime | None = None,
+) -> dict[str, Any]:
     events = release_calendar_events()
     events_by_date = group_release_events_by_date(events)
     months: list[dict[str, Any]] = []
@@ -293,10 +297,14 @@ def build_release_calendar(start_year: int = RELEASE_CALENDAR_YEAR, start_month:
         latest_event = max(event_dates)
         end_year, end_month = latest_event.year, latest_event.month
 
-    for year, month in iter_calendar_months(start_year, start_month, end_year, end_month):
+    active_month_index = 0
+    for month_index, (year, month) in enumerate(iter_calendar_months(start_year, start_month, end_year, end_month)):
         first_weekday, days_in_month = monthrange(year, month)
         weeks: list[list[dict[str, Any]]] = []
         week: list[dict[str, Any]] = [{"empty": True} for _ in range(first_weekday)]
+        is_current_month = bool(current_date and current_date.year == year and current_date.month == month)
+        if is_current_month:
+            active_month_index = month_index
 
         for day in range(1, days_in_month + 1):
             iso_date = f"{year}-{month:02d}-{day:02d}"
@@ -323,6 +331,7 @@ def build_release_calendar(start_year: int = RELEASE_CALENDAR_YEAR, start_month:
         months.append(
             {
                 "name": f"{MONTHS_PT_BR[month - 1].capitalize()} {year}",
+                "is_current": is_current_month,
                 "weeks": weeks,
             }
         )
@@ -332,6 +341,7 @@ def build_release_calendar(start_year: int = RELEASE_CALENDAR_YEAR, start_month:
         "subtitle": "Indicadores e pesquisas",
         "weekdays": CALENDAR_WEEKDAYS,
         "months": months,
+        "active_month_index": active_month_index,
     }
 
 
@@ -347,7 +357,7 @@ def add_current_display_dates(data: dict[str, Any]) -> dict[str, Any]:
         if now.year == RELEASE_CALENDAR_YEAR
         else RELEASE_CALENDAR_DEFAULT_START_MONTH
     )
-    display_data["release_calendar"] = build_release_calendar(RELEASE_CALENDAR_YEAR, calendar_start_month)
+    display_data["release_calendar"] = build_release_calendar(RELEASE_CALENDAR_YEAR, calendar_start_month, now)
     return display_data
 
 

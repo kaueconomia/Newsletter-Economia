@@ -176,13 +176,23 @@
 
                 <section class="release-calendar" aria-labelledby="release-calendar-title">
                     <div class="release-calendar__header">
-                        <p>{{ newsletter.release_calendar.subtitle }}</p>
-                        <h2 id="release-calendar-title">{{ newsletter.release_calendar.title }}</h2>
+                        <div>
+                            <p>{{ newsletter.release_calendar.subtitle }}</p>
+                            <h2 id="release-calendar-title">{{ newsletter.release_calendar.title }}</h2>
+                        </div>
+                        <div class="release-calendar__controls" aria-label="Navegação do calendário">
+                            <button class="release-calendar__button" type="button" data-calendar-prev aria-label="Mês anterior">‹</button>
+                            <button class="release-calendar__button" type="button" data-calendar-next aria-label="Próximo mês">›</button>
+                        </div>
                     </div>
 
-                    <div class="release-calendar__months">
+                    <div class="release-calendar__status" aria-live="polite">
+                        <span data-calendar-status></span>
+                    </div>
+
+                    <div class="release-calendar__months" data-calendar data-active-month="{{ newsletter.release_calendar.active_month_index }}">
                         {% for month in newsletter.release_calendar.months %}
-                        <article class="release-month">
+                        <article class="release-month{% if month.is_current %} release-month--current{% endif %}" data-calendar-month data-month-index="{{ loop.index0 }}" data-month-name="{{ month.name }}"{% if loop.index0 != newsletter.release_calendar.active_month_index %} hidden{% endif %}>
                             <h3>{{ month.name }}</h3>
                             <div class="release-month__weekdays" aria-hidden="true">
                                 {% for weekday in newsletter.release_calendar.weekdays %}
@@ -227,5 +237,33 @@
             <p>&copy; {{ newsletter.ano }} Kauê Felinto. Todos os direitos reservados.</p>
         </div>
     </footer>
+    <script>
+        (() => {
+            const calendar = document.querySelector("[data-calendar]");
+            if (!calendar) return;
+
+            const months = Array.from(calendar.querySelectorAll("[data-calendar-month]"));
+            const prevButton = document.querySelector("[data-calendar-prev]");
+            const nextButton = document.querySelector("[data-calendar-next]");
+            const status = document.querySelector("[data-calendar-status]");
+            let activeIndex = Number(calendar.dataset.activeMonth || 0);
+
+            const showMonth = (index) => {
+                activeIndex = Math.max(0, Math.min(index, months.length - 1));
+                months.forEach((month, monthIndex) => {
+                    month.hidden = monthIndex !== activeIndex;
+                });
+                if (status) {
+                    status.textContent = months[activeIndex]?.dataset.monthName || "";
+                }
+                if (prevButton) prevButton.disabled = activeIndex === 0;
+                if (nextButton) nextButton.disabled = activeIndex === months.length - 1;
+            };
+
+            prevButton?.addEventListener("click", () => showMonth(activeIndex - 1));
+            nextButton?.addEventListener("click", () => showMonth(activeIndex + 1));
+            showMonth(activeIndex);
+        })();
+    </script>
 </body>
 </html>
