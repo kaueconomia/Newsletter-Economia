@@ -855,10 +855,17 @@ a:hover {
 .release-day--event i {
     position: absolute;
     bottom: 4px;
-    width: 6px;
-    height: 6px;
+    display: grid;
+    width: 12px;
+    height: 12px;
+    place-items: center;
     border-radius: 999px;
     background: var(--blue-700);
+    color: var(--white);
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .release-day--event em {
