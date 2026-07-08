@@ -30,7 +30,7 @@
             <article class="report-card">
                 <div class="report-card__icon" aria-hidden="true">PDF</div>
                 <div class="report-card__body">
-                    <p class="report-card__date">
+                    <p class="report-card__date" title="{{ relatorio.data }} · {{ relatorio.categoria }}{% if relatorio.fonte and relatorio.fonte != relatorio.categoria %} · {{ relatorio.fonte }}{% endif %}">
                         {{ relatorio.data }} · {{ relatorio.categoria }}{% if relatorio.fonte and relatorio.fonte != relatorio.categoria %} · {{ relatorio.fonte }}{% endif %}
                     </p>
                     <h2>{{ relatorio.titulo }}</h2>

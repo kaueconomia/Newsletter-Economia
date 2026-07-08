@@ -137,7 +137,7 @@
                     <ul>
                         {% for relatorio in newsletter.relatorios_preview | default(newsletter.relatorios, true) %}
                         <li>
-                            <a class="side-report-link" href="relatorios.html">
+                            <a class="side-report-link" href="relatorios.html" title="{{ relatorio.data }} · {{ relatorio.categoria }}{% if relatorio.fonte and relatorio.fonte != relatorio.categoria %} · {{ relatorio.fonte }}{% endif %}">
                                 {% if relatorio.categoria == "Banco Central" and "Relatório de Política Monetária" in relatorio.titulo %}
                                 <span>Apresentação do Diretor de Política Econômica - Banco Central</span>
                                 {% else %}

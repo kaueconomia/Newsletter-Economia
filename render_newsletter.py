@@ -1114,7 +1114,11 @@ def select_latest_reports(reports: list[dict[str, str]], limit: int = 5) -> list
     unique_reports: list[dict[str, str]] = []
     seen_keys: set[str] = set()
     for report in reports:
-        key = report.get("arquivo") or f"{report.get('categoria', '')}|{report.get('titulo', '')}|{report.get('data', '')}"
+        file_url = str(report.get("arquivo") or "").strip()
+        if file_url and file_url != "#":
+            key = file_url
+        else:
+            key = f"{report.get('categoria', '')}|{report.get('fonte', '')}|{report.get('titulo', '')}|{report.get('data', '')}"
         if key in seen_keys:
             continue
         seen_keys.add(key)
