@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import argparse
+import email.utils
 import json
 import os
 import re
@@ -27,6 +28,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "newsletter_exemplo.json"
 ENV_FILE = BASE_DIR / "env"
+NEWS_SOURCES_FILE = BASE_DIR / "data" / "news_sources.txt"
 SUEP_RELEASE_CALENDAR_FILE = BASE_DIR / "data" / "release_calendar_suep.json"
 PRICE_INDEX_WORKBOOK = Path(
     r"C:\Users\SAMSUNG\OneDrive - Sindicato da Ind da Const Civl do Estado de SP\BI\Índices de Preços\INDICES_COMPLETO.xlsx"
@@ -53,6 +55,10 @@ AWESOMEAPI_BASE_URL = "https://economia.awesomeapi.com.br/json/last"
 BCB_SELIC_URL = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1"
 BCB_SITE_SERVICE_BASE_URL = "https://www.bcb.gov.br/api/servico/sitebcb"
 BLOG_IBRE_URL = "https://blogdoibre.fgv.br/"
+NEWS_ARTICLES_PER_SOURCE = 5
+MAIN_NEWS_LIMIT = 5
+DEFAULT_NEWS_IMAGE = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=720&q=80"
+DEFAULT_NEWS_ALT = "Mesa de trabalho com computador e documentos de análise econômica"
 FAZENDA_CONJUNTURA_URL = "https://www.gov.br/fazenda/pt-br/central-de-conteudo/publicacoes/conjuntura-economica"
 IPEA_CATEGORY_URLS = {
     "Visão Geral": "https://www.ipea.gov.br/cartadeconjuntura/index.php/category/sumario-executivo/",
@@ -696,6 +702,510 @@ def request_text(
     request = urllib.request.Request(url, headers={"User-Agent": "newsletter-economica/1.0"})
     raw_data = request_urlopen_with_retries(request, attempts=attempts)
     return raw_data.decode("utf-8", errors="replace")
+
+
+def clean_text(value: str) -> str:
+    value = html_lib.unescape(value or "")
+    value = re.sub(r"\s+", " ", value)
+    return value.strip()
+
+
+def truncate_text(value: str, max_chars: int) -> str:
+    value = clean_text(value)
+    if len(value) <= max_chars:
+        return value
+    shortened = value[: max_chars - 1].rsplit(" ", 1)[0].strip()
+    return f"{shortened}..."
+
+
+def absolute_url(url: str, base_url: str) -> str:
+    joined = urllib.parse.urljoin(base_url, html_lib.unescape(url or ""))
+    parsed = urllib.parse.urlsplit(joined)
+    clean_query = urllib.parse.urlencode(
+        [
+            (key, value)
+            for key, value in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+            if not key.lower().startswith("utm_")
+        ]
+    )
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, clean_query, ""))
+
+
+def normalize_url_for_dedupe(url: str) -> str:
+    parsed = urllib.parse.urlsplit(url)
+    path = parsed.path.rstrip("/") or "/"
+    return urllib.parse.urlunsplit((parsed.scheme.lower(), parsed.netloc.lower(), path, parsed.query, ""))
+
+
+def source_name_from_url(url: str) -> str:
+    host = urllib.parse.urlsplit(url).netloc.lower()
+    return host.removeprefix("www.")
+
+
+def format_news_date(value: str | None, fallback_date: datetime) -> tuple[str, str]:
+    if value:
+        clean_value = clean_text(value)
+        try:
+            parsed = email.utils.parsedate_to_datetime(clean_value)
+        except (TypeError, ValueError, IndexError):
+            parsed = None
+        if parsed:
+            if parsed.tzinfo is not None:
+                parsed = parsed.astimezone(get_current_datetime().tzinfo)
+            return parsed.strftime("%d/%m/%Y"), parsed.strftime("%Y-%m-%d")
+        iso_match = re.search(r"\d{4}-\d{2}-\d{2}", clean_value)
+        if iso_match:
+            try:
+                parsed_date = datetime.fromisoformat(iso_match.group(0))
+                return parsed_date.strftime("%d/%m/%Y"), parsed_date.strftime("%Y-%m-%d")
+            except ValueError:
+                pass
+
+    return fallback_date.strftime("%d/%m/%Y"), fallback_date.strftime("%Y-%m-%d")
+
+
+class FeedLinkParser(HTMLParser):
+    def __init__(self, base_url: str) -> None:
+        super().__init__()
+        self.base_url = base_url
+        self.feed_urls: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "link":
+            return
+        attr = {key.lower(): value or "" for key, value in attrs}
+        rel = attr.get("rel", "").lower()
+        feed_type = attr.get("type", "").lower()
+        href = attr.get("href", "")
+        if href and "alternate" in rel and ("rss" in feed_type or "atom" in feed_type):
+            self.feed_urls.append(absolute_url(href, self.base_url))
+
+
+class PageLinkParser(HTMLParser):
+    def __init__(self, base_url: str) -> None:
+        super().__init__()
+        self.base_url = base_url
+        self.links: list[dict[str, str]] = []
+        self._active_href = ""
+        self._active_text: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "a":
+            return
+        attr = {key.lower(): value or "" for key, value in attrs}
+        href = attr.get("href", "").strip()
+        if href:
+            self._active_href = absolute_url(href, self.base_url)
+            self._active_text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._active_href:
+            self._active_text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() != "a" or not self._active_href:
+            return
+        text = clean_text(" ".join(self._active_text))
+        self.links.append({"url": self._active_href, "title": text})
+        self._active_href = ""
+        self._active_text = []
+
+
+class ArticleMetadataParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.meta: dict[str, str] = {}
+        self.h1: list[str] = []
+        self.title: list[str] = []
+        self.paragraphs: list[str] = []
+        self.time_value = ""
+        self._capture: str | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr = {key.lower(): value or "" for key, value in attrs}
+        lower_tag = tag.lower()
+        if lower_tag == "meta":
+            key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").lower()
+            content = clean_text(attr.get("content", ""))
+            if key and content:
+                self.meta[key] = content
+        elif lower_tag in {"h1", "title", "p"}:
+            self._capture = lower_tag
+        elif lower_tag == "time":
+            self.time_value = attr.get("datetime", "") or self.time_value
+            self._capture = "time"
+
+    def handle_data(self, data: str) -> None:
+        if self._capture == "h1":
+            self.h1.append(data)
+        elif self._capture == "title":
+            self.title.append(data)
+        elif self._capture == "p":
+            text = clean_text(data)
+            if len(text) >= 80:
+                self.paragraphs.append(text)
+        elif self._capture == "time" and not self.time_value:
+            self.time_value = data
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == self._capture:
+            self._capture = None
+
+    def title_text(self) -> str:
+        return clean_text(
+            self.meta.get("og:title", "")
+            or self.meta.get("twitter:title", "")
+            or " ".join(self.h1)
+            or " ".join(self.title)
+        )
+
+    def description_text(self) -> str:
+        return clean_text(
+            self.meta.get("og:description", "")
+            or self.meta.get("twitter:description", "")
+            or self.meta.get("description", "")
+            or " ".join(self.paragraphs[:2])
+        )
+
+    def image_url(self, base_url: str) -> str:
+        image = self.meta.get("og:image", "") or self.meta.get("twitter:image", "")
+        return absolute_url(image, base_url) if image else DEFAULT_NEWS_IMAGE
+
+    def published_time(self) -> str:
+        return (
+            self.meta.get("article:published_time", "")
+            or self.meta.get("date", "")
+            or self.meta.get("pubdate", "")
+            or self.meta.get("publishdate", "")
+            or self.time_value
+        )
+
+
+def load_news_sources(path: Path = NEWS_SOURCES_FILE) -> list[str]:
+    if not path.exists():
+        return []
+    sources: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        clean_line = line.strip()
+        if clean_line and not clean_line.startswith("#"):
+            sources.append(clean_line)
+    return sources
+
+
+def candidate_feed_urls(source_url: str, page_html: str) -> list[str]:
+    parser = FeedLinkParser(source_url)
+    try:
+        parser.feed(page_html)
+    except Exception:
+        pass
+
+    parsed = urllib.parse.urlsplit(source_url)
+    root = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, "/", "", ""))
+    guesses = [urllib.parse.urljoin(root, path) for path in ("feed/", "rss/", "rss.xml", "feed.xml", "atom.xml")]
+    seen: set[str] = set()
+    feeds: list[str] = []
+    for feed_url in [*parser.feed_urls, *guesses]:
+        key = normalize_url_for_dedupe(feed_url)
+        if key not in seen:
+            seen.add(key)
+            feeds.append(feed_url)
+    return feeds
+
+
+def parse_feed_items(feed_xml: str, source_url: str) -> list[dict[str, str]]:
+    try:
+        root = ElementTree.fromstring(feed_xml)
+    except ElementTree.ParseError:
+        return []
+
+    items: list[dict[str, str]] = []
+    for element in list(root.findall(".//item")) + list(root.findall(".//{http://www.w3.org/2005/Atom}entry")):
+        title = clean_text("".join(element.findtext("title") or element.findtext("{http://www.w3.org/2005/Atom}title") or ""))
+        link = clean_text(element.findtext("link") or "")
+        if not link:
+            atom_link = element.find("{http://www.w3.org/2005/Atom}link")
+            if atom_link is not None:
+                link = atom_link.attrib.get("href", "")
+        date = clean_text(
+            element.findtext("pubDate")
+            or element.findtext("published")
+            or element.findtext("updated")
+            or element.findtext("{http://www.w3.org/2005/Atom}published")
+            or element.findtext("{http://www.w3.org/2005/Atom}updated")
+            or ""
+        )
+        description = clean_text(
+            element.findtext("description")
+            or element.findtext("summary")
+            or element.findtext("{http://www.w3.org/2005/Atom}summary")
+            or ""
+        )
+        if title and link:
+            items.append(
+                {
+                    "titulo": title,
+                    "url": absolute_url(link, source_url),
+                    "data_raw": date,
+                    "descricao": description,
+                }
+            )
+    return items
+
+
+def looks_like_article_url(url: str, source_url: str) -> bool:
+    parsed = urllib.parse.urlsplit(url)
+    source_host = urllib.parse.urlsplit(source_url).netloc.lower().removeprefix("www.")
+    host = parsed.netloc.lower().removeprefix("www.")
+    if parsed.scheme not in {"http", "https"} or host != source_host:
+        return False
+    path = parsed.path.strip("/")
+    if not path or "." in path.rsplit("/", 1)[-1]:
+        return False
+    blocked = {
+        "about",
+        "authors",
+        "career-resources",
+        "contact",
+        "conferences",
+        "donate",
+        "events",
+        "experts",
+        "people",
+        "privacy",
+        "search",
+        "tag",
+        "terms",
+        "topics",
+    }
+    parts = [part.lower() for part in path.split("/") if part]
+    first_part = path.split("/", 1)[0].lower()
+    if first_part in blocked:
+        return False
+    if any(part in {"dei-report-2025", "programme-areas"} for part in parts):
+        return False
+    if re.search(r"\b20\d{2}\b", path):
+        return True
+    if first_part == "research":
+        return False
+    article_sections = {
+        "article",
+        "articles",
+        "blog",
+        "blogs",
+        "column",
+        "columns",
+        "commentary",
+        "digest",
+        "econlog",
+        "news",
+        "posts",
+        "publication",
+        "publications",
+        "voxeu",
+    }
+    return bool(parts and parts[0] in article_sections and len(parts) >= 2)
+
+
+def source_url_is_article(source_url: str) -> bool:
+    return looks_like_article_url(source_url, source_url)
+
+
+def extract_links_from_page(page_html: str, source_url: str) -> list[dict[str, str]]:
+    parser = PageLinkParser(source_url)
+    try:
+        parser.feed(page_html)
+    except Exception:
+        return []
+
+    seen: set[str] = set()
+    links: list[dict[str, str]] = []
+    for link in parser.links:
+        url = link["url"]
+        title = clean_text(link.get("title", ""))
+        key = normalize_url_for_dedupe(url)
+        if key in seen or not looks_like_article_url(url, source_url):
+            continue
+        if len(title) < 20:
+            continue
+        seen.add(key)
+        links.append({"titulo": title, "url": url, "descricao": ""})
+        if len(links) >= NEWS_ARTICLES_PER_SOURCE:
+            break
+    return links
+
+
+def fetch_source_candidates(source_url: str) -> list[dict[str, str]]:
+    if source_url_is_article(source_url):
+        return [{"titulo": "", "url": source_url, "descricao": ""}]
+
+    page_html = request_text(source_url, attempts=1)
+
+    for feed_url in candidate_feed_urls(source_url, page_html):
+        try:
+            feed_items = parse_feed_items(request_text(feed_url, attempts=1), source_url)
+        except Exception:
+            continue
+        if feed_items:
+            return [
+                item
+                for item in feed_items
+                if looks_like_article_url(item.get("url", ""), source_url)
+            ][:NEWS_ARTICLES_PER_SOURCE]
+
+    return extract_links_from_page(page_html, source_url)[:NEWS_ARTICLES_PER_SOURCE]
+
+
+def fetch_article_metadata(item: dict[str, str], source_url: str) -> dict[str, str]:
+    metadata = {
+        "titulo": clean_text(item.get("titulo", "")),
+        "url": item["url"],
+        "descricao": clean_text(item.get("descricao", "")),
+        "data_raw": clean_text(item.get("data_raw", "")),
+        "imagem": DEFAULT_NEWS_IMAGE,
+        "alt": DEFAULT_NEWS_ALT,
+    }
+    try:
+        html = request_text(item["url"], attempts=1)
+    except Exception:
+        return metadata
+
+    parser = ArticleMetadataParser()
+    try:
+        parser.feed(html)
+    except Exception:
+        return metadata
+
+    metadata["titulo"] = parser.title_text() or metadata["titulo"]
+    metadata["descricao"] = parser.description_text() or metadata["descricao"]
+    metadata["data_raw"] = parser.published_time() or metadata["data_raw"]
+    metadata["imagem"] = parser.image_url(source_url)
+    metadata["alt"] = f"Imagem da notícia em {source_name_from_url(source_url)}"
+    return metadata
+
+
+def fallback_news_summary(title: str, description: str) -> str:
+    if description:
+        return truncate_text(description, 190)
+    return truncate_text(f"Resumo automático indisponível. Leia a análise completa sobre {title}.", 190)
+
+
+def summarize_news_with_ai(title: str, description: str, source_name: str) -> str:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return fallback_news_summary(title, description)
+
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+    prompt = (
+        "Resuma esta notícia em português do Brasil, em uma frase curta para uma newsletter econômica. "
+        "Não invente dados além do título e da descrição. Limite a 190 caracteres.\n\n"
+        f"Fonte: {source_name}\nTítulo: {title}\nDescrição: {description}"
+    )
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "Você escreve resumos jornalísticos objetivos e concisos."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,
+        "max_tokens": 90,
+    }
+    request = urllib.request.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "newsletter-economica/1.0",
+        },
+        method="POST",
+    )
+    try:
+        raw_data = request_urlopen_with_retries(request, attempts=1)
+        response = json.loads(raw_data.decode("utf-8"))
+        content = response["choices"][0]["message"]["content"]
+        return truncate_text(content, 190)
+    except Exception as error:
+        print(f"Aviso: IA indisponível para resumir '{title}'. Usando fallback. Motivo: {error}")
+        return fallback_news_summary(title, description)
+
+
+def build_news_item(metadata: dict[str, str], source_url: str, fallback_date: datetime) -> dict[str, str]:
+    source_name = source_name_from_url(source_url)
+    display_date, iso_date = format_news_date(metadata.get("data_raw"), fallback_date)
+    title = truncate_text(metadata["titulo"], 140)
+    description = metadata.get("descricao", "")
+    return {
+        "titulo": title,
+        "resumo": summarize_news_with_ai(title, description, source_name),
+        "topico": source_name,
+        "data": display_date,
+        "data_iso": iso_date,
+        "hora": fallback_date.strftime("%H:%M"),
+        "url": metadata["url"],
+        "imagem": metadata.get("imagem") or DEFAULT_NEWS_IMAGE,
+        "alt": metadata.get("alt") or DEFAULT_NEWS_ALT,
+    }
+
+
+def collect_news_from_sources() -> list[dict[str, str]]:
+    sources = load_news_sources()
+    if not sources:
+        return []
+
+    fallback_date = get_current_datetime()
+    candidates_by_source: list[list[dict[str, str]]] = []
+    collected: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for source_url in sources:
+        try:
+            candidates = fetch_source_candidates(source_url)
+        except Exception as error:
+            log_fetch_error(f"notícias principais - {source_name_from_url(source_url)}", error)
+            continue
+
+        source_candidates: list[dict[str, str]] = []
+        for candidate in candidates[:NEWS_ARTICLES_PER_SOURCE]:
+            url = candidate.get("url", "")
+            if not url:
+                continue
+            key = normalize_url_for_dedupe(url)
+            if key in seen:
+                continue
+            seen.add(key)
+            candidate["_source_url"] = source_url
+            source_candidates.append(candidate)
+        if source_candidates:
+            candidates_by_source.append(source_candidates)
+
+    for position in range(NEWS_ARTICLES_PER_SOURCE):
+        for source_candidates in candidates_by_source:
+            if position >= len(source_candidates):
+                continue
+            candidate = source_candidates[position]
+            source_url = candidate.pop("_source_url")
+            metadata = fetch_article_metadata(candidate, source_url)
+            if (
+                len(clean_text(metadata.get("titulo", ""))) >= 20
+                and metadata.get("url")
+                and looks_like_article_url(metadata["url"], source_url)
+            ):
+                collected.append(build_news_item(metadata, source_url, fallback_date))
+
+    if collected:
+        print(f"Notícias coletadas automaticamente: {len(collected)} item(ns).")
+        return collected
+
+    print("Aviso: nenhuma notícia foi coletada. Mantendo notícias do JSON.")
+    return []
+
+
+def add_collected_news(data: dict[str, Any]) -> dict[str, Any]:
+    display_data = deepcopy(data)
+    collected_news = collect_news_from_sources()
+    if collected_news:
+        display_data["noticias"] = collected_news[:MAIN_NEWS_LIMIT]
+        display_data["mais_noticias"] = collected_news[MAIN_NEWS_LIMIT:]
+    return display_data
 
 
 def get_brapi_token() -> str:
@@ -1719,7 +2229,7 @@ def main() -> int:
         return 1
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    display_data = add_ipea_reports(add_blog_ibre_posts(add_indicator_data(add_current_display_dates(data))))
+    display_data = add_ipea_reports(add_blog_ibre_posts(add_indicator_data(add_collected_news(add_current_display_dates(data)))))
     newsletter_html = render_template(display_data, TEMPLATE_NAME)
     OUTPUT_FILE.write_text(newsletter_html, encoding="utf-8")
     MORE_NEWS_OUTPUT_FILE.write_text(render_template(display_data, MORE_NEWS_TEMPLATE_NAME), encoding="utf-8")
