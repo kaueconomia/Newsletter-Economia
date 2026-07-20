@@ -925,6 +925,10 @@ a:hover {
     padding: 42px 0 54px;
 }
 
+.database-dashboard + .database-dashboard {
+    margin-top: 42px;
+}
+
 .powerbi-panel {
     padding: 14px;
     border: 1px solid var(--line);
