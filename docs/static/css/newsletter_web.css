@@ -1107,3 +1107,30 @@ a:hover {
         height: 1px;
     }
 }
+
+.embedded-newsletter-page {
+    padding: 42px 0 54px;
+}
+
+.embedded-newsletter {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--white);
+    box-shadow: var(--shadow-soft);
+}
+
+.embedded-newsletter iframe {
+    display: block;
+    width: 100%;
+    height: min(88vh, 1100px);
+    min-height: 720px;
+    border: 0;
+    background: #edf3fa;
+}
+
+@media (max-width: 720px) {
+    .embedded-newsletter iframe {
+        min-height: 640px;
+    }
+}
