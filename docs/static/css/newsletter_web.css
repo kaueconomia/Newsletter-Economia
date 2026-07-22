@@ -1134,3 +1134,22 @@ a:hover {
         min-height: 640px;
     }
 }
+.embedded-newsletter--unavailable {
+    min-height: 360px;
+    padding: 56px 28px;
+    text-align: center;
+}
+
+.embedded-newsletter--unavailable h2 {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 26px;
+}
+
+.embedded-newsletter--unavailable p {
+    max-width: 580px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.6;
+}
